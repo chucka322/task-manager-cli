@@ -1,55 +1,76 @@
 import json
 import os
 from datetime import datetime
+from abc import ABC, abstractmethod
+from task import Task
+
+class Storage(ABC):
+    @abstractmethod
+    def load_tasks(self):
+        pass
+
+    @abstractmethod
+    def save_tasks(self, task_list):
+        pass
 
 
-def save_broken_json():
-    timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    tasks_broken = f"tasks_broken_{timestamp}.json"
-    os.rename("tasks.json", tasks_broken)
+class JsonTaskStorage(Storage):
+    def __init__(self, filename="tasks.json"):
+        self.filename = filename
 
+    def _save_broken_json(self):
+        timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        secure_file_name = os.path.basename(self.filename).replace(".", "_")
+        broken_filename = f"tasks_broken_{secure_file_name}_{timestamp}.json"
 
-def load_tasks():
-    try:
-        with open("tasks.json", "r", encoding="utf-8") as file:
-            data = json.load(file)
+        os.rename(self.filename, broken_filename)
 
-        if not isinstance(data, list):
-            save_broken_json()
+    def load_tasks(self):
+        try:
+            with open(self.filename, "r", encoding="utf-8") as file:
+                data = json.load(file)
+
+            if not isinstance(data, list):
+                self._save_broken_json()
+                return []
+
+            for task in data:
+                if not isinstance(task, dict):
+                    self._save_broken_json()
+                    return []
+
+                if "text" not in task or "done" not in task:
+                    self._save_broken_json()
+                    return []
+
+                if not isinstance(task["text"], str):
+                    self._save_broken_json()
+                    return []
+
+                if not isinstance(task["done"], bool):
+                    self._save_broken_json()
+                    return []
+
+            task_list = []
+
+            for task in data:
+                task_list.append(Task(task["text"], task["done"]))
+
+            return task_list
+
+        except FileNotFoundError:
             return []
 
-        for task in data:
-            if not isinstance(task, dict):
-                save_broken_json()
-                return []
+        except json.JSONDecodeError:
+            print("Файл JSON поврежден")
+            self._save_broken_json()
+            return []
 
-            if "text" not in task:
-                save_broken_json()
-                return []
+    def save_tasks(self, task_list):
+        dict_list = []
 
-            if "done" not in task:
-                save_broken_json()
-                return []
+        for task in task_list:
+            dict_list.append(task.to_dict())
 
-            if not isinstance(task["text"], str):
-                save_broken_json()
-                return []
-
-            if not isinstance(task["done"], bool):
-                save_broken_json()
-                return []
-
-        return data
-
-    except FileNotFoundError:
-        return []
-
-    except json.JSONDecodeError:
-        print("Файл JSON поврежден")
-        save_broken_json()
-        return []
-
-
-def save_tasks(tasks):
-    with open("tasks.json", "w", encoding="utf-8") as file:
-        json.dump(tasks, file, ensure_ascii=False, indent=4)
+        with open(self.filename, "w", encoding="utf-8") as file:
+            json.dump(dict_list, file, ensure_ascii=False, indent=4)

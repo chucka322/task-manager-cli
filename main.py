@@ -1,24 +1,11 @@
-from storage import load_tasks
 from parser import parse_message
-from commands import add_task, task_list, delete_task, edit_task, done_task, undone_task, clear_tasks, stats, show_help, search
+from storage import JsonTaskStorage
+from task_manager import TaskManager
 
 
 def main():
-    tasks = load_tasks()
-    command_handlers = {}
-    
-    command_handlers = {
-        "/add_task": add_task,
-        "/task_list": task_list,
-        "/delete_task": delete_task,
-        "/edit_task": edit_task,
-        "/done_task": done_task,
-        "/clear_tasks": clear_tasks,
-        "/undone_task": undone_task,
-        "/stats": stats,
-        "/help": show_help,
-        "/search": search,
-    }
+    storage = JsonTaskStorage("tasks.json")
+    manager = TaskManager(storage)
 
     name = input("Привет! Введи свое имя: ")
     print(f'Привет, {name}! Введите /help для получения списка команд')
@@ -33,11 +20,16 @@ def main():
         command, argument = parse_message(message)
 
         if command == "/exit":
+            print("Пока!")
             break
-        elif command in command_handlers:
-            command_handlers[command](tasks, argument)
-        else:
+
+        handler = manager.command_handlers.get(command)
+
+        if handler is None:
             print("Неизвестная команда")
+            continue
+
+        handler(argument)
 
 
 if __name__ == "__main__":
