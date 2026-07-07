@@ -1,14 +1,17 @@
+from pathlib import Path
+
 from parser import parse_message
 from storage import JsonTaskStorage
 from task_manager import TaskManager
 
 
 def main():
-    storage = JsonTaskStorage("tasks.json")
+    base_dir = Path(__file__).resolve().parent
+    storage = JsonTaskStorage(base_dir / "tasks.json")
     manager = TaskManager(storage)
 
     name = input("Привет! Введи свое имя: ")
-    print(f'Привет, {name}! Введите /help для получения списка команд')
+    print(f"Привет, {name}! Введите /help для получения списка команд")
 
     while True:
         message = input("Введи команду: ").strip()

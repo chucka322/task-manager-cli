@@ -4,6 +4,7 @@ from datetime import datetime
 from abc import ABC, abstractmethod
 from task import Task
 
+
 class Storage(ABC):
     @abstractmethod
     def load_tasks(self):
@@ -34,12 +35,20 @@ class JsonTaskStorage(Storage):
                 self._save_broken_json()
                 return []
 
+            required_fields = [
+                "text",
+                "done",
+                "task_id",
+                "created_at",
+                "updated_at",
+            ]
+
             for task in data:
                 if not isinstance(task, dict):
                     self._save_broken_json()
                     return []
 
-                if "text" not in task or "done" not in task:
+                if not all(field in task for field in required_fields):
                     self._save_broken_json()
                     return []
 
@@ -51,10 +60,30 @@ class JsonTaskStorage(Storage):
                     self._save_broken_json()
                     return []
 
+                if not isinstance(task["task_id"], str):
+                    self._save_broken_json()
+                    return []
+
+                if not isinstance(task["created_at"], str):
+                    self._save_broken_json()
+                    return []
+
+                if not isinstance(task["updated_at"], str):
+                    self._save_broken_json()
+                    return []
+
             task_list = []
 
             for task in data:
-                task_list.append(Task(task["text"], task["done"]))
+                task_list.append(
+                    Task(
+                        text=task["text"],
+                        done=task["done"],
+                        task_id=task["task_id"],
+                        created_at=task["created_at"],
+                        updated_at=task["updated_at"],
+                    )
+                )
 
             return task_list
 
