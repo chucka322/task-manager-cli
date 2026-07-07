@@ -217,3 +217,9 @@ If the JSON file is corrupted, the app renames the broken file and starts with a
 ## Project status
 
 Completed.
+
+## Project idea
+
+This project is based on the Task Tracker project idea from roadmap.sh:
+
+https://roadmap.sh/projects/task-tracker
