@@ -19,7 +19,7 @@ class TaskManager:
             if not callable(method):
                 continue
 
-            command = "/" + name[4:]
+            command = name[4:].replace("_", "-")
             command_handlers[command] = method
 
         return command_handlers
@@ -29,38 +29,38 @@ class TaskManager:
 
     def _get_task_index(self, argument):
         if argument == "":
-            print("Вы не указали номер задачи")
+            print("Task number was not provided")
             return None
 
         if not argument.isdigit():
-            print("Вы ввели не число")
+            print("Task number must be a number")
             return None
 
         num = int(argument) - 1
 
         if num < 0:
-            print("Введите положительное число")
+            print("Enter a positive number")
             return None
 
         if num >= len(self.task_list):
-            print("Задачи под таким номером нет в списке")
+            print("There is no task with this number")
             return None
 
         return num
 
-    def cmd_add_task(self, argument):
+    def cmd_add(self, argument):
         if argument == "":
-            print("Вы не указали, какую задачу добавить")
+            print("Task text was not provided")
             return
 
         self.task_list.append(Task(argument))
         self._save_tasks()
 
-        print(f'Задача "{argument}" добавлена!')
+        print(f'Task "{argument}" added successfully')
 
-    def cmd_task_list(self, argument=""):
+    def cmd_list(self, argument=""):
         if len(self.task_list) == 0:
-            print("Список задач пуст")
+            print("Task list is empty")
             return
 
         if argument == "":
@@ -71,7 +71,7 @@ class TaskManager:
                 all_tasks.append(task_to_show)
 
             result = "\n".join(all_tasks)
-            print(f"\nСписок задач:\n\n{result}\n")
+            print(f"\nTask list:\n\n{result}\n")
 
         elif argument == "done":
             done_tasks = []
@@ -82,10 +82,10 @@ class TaskManager:
                     done_tasks.append(task_to_show)
 
             if len(done_tasks) == 0:
-                print("Выполненных задач нет")
+                print("There are no done tasks")
             else:
                 result = "\n".join(done_tasks)
-                print(f"\nСписок выполненных задач:\n\n{result}\n")
+                print(f"\nDone tasks:\n\n{result}\n")
 
         elif argument == "in-progress":
             in_progress_tasks = []
@@ -96,10 +96,10 @@ class TaskManager:
                     in_progress_tasks.append(task_to_show)
 
             if len(in_progress_tasks) == 0:
-                print("Задач в работе нет")
+                print("There are no tasks in progress")
             else:
                 result = "\n".join(in_progress_tasks)
-                print(f"\nСписок задач в работе:\n\n{result}\n")
+                print(f"\nTasks in progress:\n\n{result}\n")
 
         elif argument == "todo":
             todo_tasks = []
@@ -110,17 +110,18 @@ class TaskManager:
                     todo_tasks.append(task_to_show)
 
             if len(todo_tasks) == 0:
-                print("Задач к выполнению нет")
+                print("There are no todo tasks")
             else:
                 result = "\n".join(todo_tasks)
-                print(f"\nСписок задач к выполнению:\n\n{result}\n")
+                print(f"\nTodo tasks:\n\n{result}\n")
 
         else:
             print(
-                "Неизвестный фильтр. Используйте: todo, in-progress, done или оставьте аргумент пустым для вывода всего списка задач"
+                "Unknown filter. Use: todo, in-progress, done, "
+                "or leave the argument empty to show all tasks"
             )
 
-    def cmd_delete_task(self, argument):
+    def cmd_delete(self, argument):
         num = self._get_task_index(argument)
 
         if num is None:
@@ -129,8 +130,8 @@ class TaskManager:
         task_to_delete = self.task_list.pop(num)
         self._save_tasks()
 
-        print(f'Задача "{task_to_delete.text}" удалена')
-        self.cmd_task_list()
+        print(f'Task "{task_to_delete.text}" deleted')
+        self.cmd_list()
 
     def cmd_mark_done(self, argument):
         num = self._get_task_index(argument)
@@ -141,14 +142,14 @@ class TaskManager:
         task = self.task_list[num]
 
         if task.status == "done":
-            print("Задача уже является выполненной")
+            print("Task is already done")
             return
 
         task.mark_done()
         self._save_tasks()
 
-        print(f'Задача "{task.text}" выполнена!')
-        self.cmd_task_list()
+        print(f'Task "{task.text}" marked as done')
+        self.cmd_list()
 
     def cmd_mark_in_progress(self, argument):
         num = self._get_task_index(argument)
@@ -159,14 +160,14 @@ class TaskManager:
         task = self.task_list[num]
 
         if task.status == "in-progress":
-            print("Задача уже выполняется")
+            print("Task is already in progress")
             return
 
         task.mark_in_progress()
         self._save_tasks()
 
-        print(f'Задача "{task.text}" выполняется!')
-        self.cmd_task_list()
+        print(f'Task "{task.text}" marked as in progress')
+        self.cmd_list()
 
     def cmd_mark_todo(self, argument):
         num = self._get_task_index(argument)
@@ -177,24 +178,24 @@ class TaskManager:
         task = self.task_list[num]
 
         if task.status == "todo":
-            print("Задача еще не выполняется")
+            print("Task is already todo")
             return
 
         task.mark_todo()
         self._save_tasks()
 
-        print(f'Задача "{task.text}" не выполняется!')
-        self.cmd_task_list()
+        print(f'Task "{task.text}" marked as todo')
+        self.cmd_list()
 
-    def cmd_edit_task(self, argument):
+    def cmd_edit(self, argument):
         if argument == "":
-            print("Укажите номер задачи и новый текст через пробел")
+            print("Provide task number and new text separated by a space")
             return
 
         parts = argument.strip().split(maxsplit=1)
 
         if len(parts) < 2:
-            print("Укажите номер задачи и новый текст через пробел")
+            print("Provide task number and new text separated by a space")
             return
 
         index = self._get_task_index(parts[0])
@@ -207,12 +208,12 @@ class TaskManager:
         self.task_list[index].edit_text(new_text)
         self._save_tasks()
 
-        print("Задача обновлена")
-        self.cmd_task_list()
+        print("Task updated")
+        self.cmd_list()
 
     def cmd_search(self, argument):
         if argument == "":
-            print("Вы ввели пустую строку")
+            print("Search query is empty")
             return
 
         search_list = []
@@ -223,10 +224,10 @@ class TaskManager:
                 search_list.append(task_to_show)
 
         if len(search_list) == 0:
-            print("Такого слова нет в списке задач")
+            print("No tasks found")
         else:
             result = "\n".join(search_list)
-            print(f'Список задач со словом "{argument}":\n{result}')
+            print(f'Tasks matching "{argument}":\n{result}')
 
     def cmd_stats(self, argument=""):
         total = len(self.task_list)
@@ -235,29 +236,32 @@ class TaskManager:
         in_progress_count = total - done_count - todo_count
 
         print(
-            f"Всего задач: {total}\nВыполнено: {done_count}\nАктивных: {in_progress_count}\nНе начатых: {todo_count}"
+            f"Total tasks: {total}\n"
+            f"Done: {done_count}\n"
+            f"In progress: {in_progress_count}\n"
+            f"Todo: {todo_count}"
         )
 
-    def cmd_clear_tasks(self, argument=""):
+    def cmd_clear(self, argument=""):
         if len(self.task_list) == 0:
-            print("Список уже пуст")
+            print("Task list is already empty")
             return
 
         self.task_list.clear()
         self._save_tasks()
 
-        print("Все задачи удалены")
+        print("All tasks deleted")
 
     def cmd_help(self, argument=""):
         commands = sorted(self.command_handlers.keys())
-        commands.append("/exit")
+        commands.append("exit")
 
-        print("Список команд:")
+        print("Available commands:")
         print(", ".join(commands))
 
-    def cmd_task_info(self, argument=""):
+    def cmd_info(self, argument=""):
         if len(self.task_list) == 0:
-            print("Список задач пуст")
+            print("Task list is empty")
             return
 
         if argument == "":
@@ -265,11 +269,18 @@ class TaskManager:
 
             for index, task in enumerate(self.task_list, start=1):
                 task_data = task.to_dict()
-                task_to_show = f"{index}\nTask: {task_data['text']}\nStatus: {task_data['status']}\nTask ID: {task_data['task_id']}\nCreated at: {task_data['created_at']}\nUpdated at: {task_data['updated_at']}\n"
+                task_to_show = (
+                    f"{index}\n"
+                    f"Task: {task_data['text']}\n"
+                    f"Status: {task_data['status']}\n"
+                    f"Task ID: {task_data['task_id']}\n"
+                    f"Created at: {task_data['created_at']}\n"
+                    f"Updated at: {task_data['updated_at']}\n"
+                )
                 all_tasks.append(task_to_show)
 
             result = "\n".join(all_tasks)
-            print(f"\nСписок задач:\n\n{result}")
+            print(f"\nTask list:\n\n{result}")
 
         elif argument.isdigit():
             index = self._get_task_index(argument)
@@ -279,8 +290,15 @@ class TaskManager:
 
             task = self.task_list[index]
             task_data = task.to_dict()
-            task_to_show = f"{argument}\nTask: {task_data['text']}\nStatus: {task_data['status']}\nTask ID: {task_data['task_id']}\nCreated at: {task_data['created_at']}\nUpdated at: {task_data['updated_at']}\n"
+            task_to_show = (
+                f"{argument}\n"
+                f"Task: {task_data['text']}\n"
+                f"Status: {task_data['status']}\n"
+                f"Task ID: {task_data['task_id']}\n"
+                f"Created at: {task_data['created_at']}\n"
+                f"Updated at: {task_data['updated_at']}\n"
+            )
             print(task_to_show)
 
         else:
-            print("Неизвестный фильтр")
+            print("Unknown argument")

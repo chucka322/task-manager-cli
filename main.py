@@ -10,54 +10,39 @@ def main():
     base_dir = Path(__file__).resolve().parent
     storage = JsonTaskStorage(base_dir / "tasks.json")
     manager = TaskManager(storage)
+
     if len(sys.argv) > 1:
         command = sys.argv[1]
         argument = " ".join(sys.argv[2:])
-
-        cli_commands = {
-            "add": "/add_task",
-            "list": "/task_list",
-            "delete": "/delete_task",
-            "update": "/edit_task",
-            "mark-done": "/mark_done",
-            "mark-in-progress": "/mark_in_progress",
-            "mark-todo": "/mark_todo",
-            "info": "/task_info",
-            "stats": "/stats",
-            "clear": "/clear_tasks",
-            "help": "/help",
-        }
-
-        translated_command = cli_commands.get(command)
-        handler = manager.command_handlers.get(translated_command)
+        handler = manager.command_handlers.get(command)
 
         if handler is None:
-            print("Неизвестная команда")
+            print("Unknown command")
             return
 
         handler(argument)
         return
 
-    name = input("Привет! Введи свое имя: ")
-    print(f"Привет, {name}! Введите /help для получения списка команд")
+    name = input("Hi! Enter your name: ")
+    print(f"Hi, {name}! Type 'help' to see the list of commands")
 
     while True:
-        message = input("Введи команду: ").strip()
+        message = input("Enter command: ").strip()
 
         if message == "":
-            print("Вы ввели пустое сообщение")
+            print("You entered an empty command")
             continue
 
         command, argument = parse_message(message)
 
-        if command == "/exit":
-            print("Пока!")
+        if command == "exit":
+            print("Goodbye!")
             break
 
         handler = manager.command_handlers.get(command)
 
         if handler is None:
-            print("Неизвестная команда")
+            print("Unknown command")
             continue
 
         handler(argument)

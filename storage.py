@@ -36,8 +36,7 @@ class JsonTaskStorage(Storage):
                 data = json.load(file)
 
             if not isinstance(data, list):
-                self._save_broken_json()
-                return []
+                return self._handle_broken_json()
 
             required_fields = [
                 "text",
@@ -81,9 +80,8 @@ class JsonTaskStorage(Storage):
             return []
 
         except json.JSONDecodeError:
-            print("Файл JSON поврежден")
-            self._save_broken_json()
-            return []
+            print("JSON file is corrupted")
+            return self._handle_broken_json()
 
     def save_tasks(self, task_list):
         dict_list = []
