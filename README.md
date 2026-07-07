@@ -1,154 +1,219 @@
 # Task Manager CLI
 
-Простой консольный менеджер задач на Python.
+A simple command-line task manager written in Python.
 
-Проект сделан как учебный, для практики.
+The app supports interactive mode and direct command-line usage. Tasks are stored locally in a JSON file.
 
-## Возможности
+## Features
 
-- добавление задачи
-- просмотр всех задач
-- просмотр активных задач
-- просмотр выполненных задач
-- отметка задачи как выполненной
-- возврат задачи в активные
-- редактирование задачи
-- удаление одной задачи
-- очистка всех задач
-- поиск по задачам
-- статистика по задачам
+- Add new tasks
+- List all tasks
+- Filter tasks by status
+- Edit task text
+- Delete tasks
+- Mark tasks as todo, in progress, or done
+- View detailed task information
+- Search tasks by text
+- Show task statistics
+- Clear all tasks
+- Store tasks locally in JSON
 
-## Запуск
+## Task statuses
 
-В терминале нужно перейти в папку проекта и выполнить:
+Each task can have one of three statuses:
+
+```text
+todo
+in-progress
+done
+```
+
+## Requirements
+
+- Python 3
+
+## Running the app
+
+Open the project folder in the terminal and run:
 
 ```bash
 python main.py
 ```
 
-Если на Windows команда `python` не работает, можно попробовать:
+On Windows, if `python` does not work, try:
 
 ```bash
 py main.py
 ```
 
-После запуска программа попросит ввести имя, а потом начнёт принимать команды.
+After launch, the app starts in interactive mode.
 
-## Команды
-
-```text
-/help
-/add_task текст задачи
-/task_list
-/task_list active
-/task_list done
-/delete_task номер
-/edit_task номер новый текст
-/done_task номер
-/undone_task номер
-/search текст
-/stats
-/clear_tasks
-/exit
-```
-
-## Примеры использования
-
-Добавить задачу:
+## Interactive commands
 
 ```text
-/add_task купить хлеб
+help
+add task text
+list
+list todo
+list in-progress
+list done
+info
+info task_number
+edit task_number new text
+delete task_number
+mark-todo task_number
+mark-in-progress task_number
+mark-done task_number
+search text
+stats
+clear
+exit
 ```
 
-Показать все задачи:
+## Direct CLI usage
+
+You can also run commands directly from the terminal:
+
+```bash
+python main.py add "Buy groceries"
+python main.py list
+python main.py list done
+python main.py mark-in-progress 1
+python main.py mark-done 1
+python main.py info 1
+python main.py edit 1 "Buy groceries and cook dinner"
+python main.py delete 1
+python main.py stats
+```
+
+## Windows shortcut
+
+On Windows, the project includes a `task-cli.bat` launcher.
+
+It allows running commands from the project folder like this:
+
+```bash
+.\task-cli add "Buy groceries"
+.\task-cli list
+.\task-cli mark-in-progress 1
+.\task-cli info 1
+```
+
+The `.bat` file starts `main.py` and passes all command arguments to it.
+
+## Usage examples
+
+Add a new task:
+
+```bash
+python main.py add "Buy groceries"
+```
+
+List all tasks:
+
+```bash
+python main.py list
+```
+
+List todo tasks:
+
+```bash
+python main.py list todo
+```
+
+List tasks in progress:
+
+```bash
+python main.py list in-progress
+```
+
+List done tasks:
+
+```bash
+python main.py list done
+```
+
+Mark a task as in progress:
+
+```bash
+python main.py mark-in-progress 1
+```
+
+Mark a task as done:
+
+```bash
+python main.py mark-done 1
+```
+
+Move a task back to todo:
+
+```bash
+python main.py mark-todo 1
+```
+
+Edit a task:
+
+```bash
+python main.py edit 1 "Buy groceries and cook dinner"
+```
+
+Show detailed task information:
+
+```bash
+python main.py info 1
+```
+
+Search tasks:
+
+```bash
+python main.py search groceries
+```
+
+Show task statistics:
+
+```bash
+python main.py stats
+```
+
+Delete a task:
+
+```bash
+python main.py delete 1
+```
+
+Delete all tasks:
+
+```bash
+python main.py clear
+```
+
+## Project structure
 
 ```text
-/task_list
+main.py           app entry point
+task.py           Task class
+task_manager.py   TaskManager class and command handlers
+storage.py        JSON storage logic
+parser.py         command parser
+task-cli.bat      Windows launcher
+README.md         project documentation
+.gitignore        ignored files
 ```
 
-Показать только активные задачи:
+## Data storage
 
-```text
-/task_list active
-```
-
-Показать только выполненные задачи:
-
-```text
-/task_list done
-```
-
-Отметить задачу выполненной:
-
-```text
-/done_task 1
-```
-
-Вернуть задачу в активные:
-
-```text
-/undone_task 1
-```
-
-Изменить текст задачи:
-
-```text
-/edit_task 1 купить молоко
-```
-
-Удалить одну задачу:
-
-```text
-/delete_task 1
-```
-
-Найти задачу по слову:
-
-```text
-/search хлеб
-```
-
-Показать статистику:
-
-```text
-/stats
-```
-
-Удалить все задачи:
-
-```text
-/clear_tasks
-```
-
-Выйти из программы:
-
-```text
-/exit
-```
-
-## Структура проекта
-
-```text
-main.py          точка входа в программу
-task.py          класс Task
-task_manager.py  класс TaskManager и команды
-storage.py       сохранение и загрузка задач через JSON
-parser.py        разбор пользовательской команды
-tasks.json       файл с задачами
-README.md        описание проекта
-.gitignore       список файлов, которые не нужно добавлять в Git
-```
-
-## Хранение данных
-
-Задачи сохраняются в файл:
+Tasks are stored locally in:
 
 ```text
 tasks.json
 ```
 
-Если JSON-файл повреждён, программа создаёт резервную копию повреждённого файла и начинает работу с пустым списком задач.
+The file is created automatically after adding tasks.
 
-## Статус проекта
+`tasks.json` contains local user data and is ignored by Git.
 
-Учебная версия.
+If the JSON file is corrupted, the app renames the broken file and starts with an empty task list.
+
+## Project status
+
+Completed.
