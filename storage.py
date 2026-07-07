@@ -26,6 +26,10 @@ class JsonTaskStorage(Storage):
 
         os.rename(self.filename, broken_filename)
 
+    def _handle_broken_json(self):
+        self._save_broken_json()
+        return []
+
     def load_tasks(self):
         try:
             with open(self.filename, "r", encoding="utf-8") as file:
@@ -37,40 +41,26 @@ class JsonTaskStorage(Storage):
 
             required_fields = [
                 "text",
-                "done",
+                "status",
                 "task_id",
                 "created_at",
                 "updated_at",
             ]
 
+            allowed_statuses = ["todo", "in-progress", "done"]
+
             for task in data:
                 if not isinstance(task, dict):
-                    self._save_broken_json()
-                    return []
+                    return self._handle_broken_json()
 
                 if not all(field in task for field in required_fields):
-                    self._save_broken_json()
-                    return []
+                    return self._handle_broken_json()
 
-                if not isinstance(task["text"], str):
-                    self._save_broken_json()
-                    return []
+                if not all(isinstance(task[field], str) for field in required_fields):
+                    return self._handle_broken_json()
 
-                if not isinstance(task["done"], bool):
-                    self._save_broken_json()
-                    return []
-
-                if not isinstance(task["task_id"], str):
-                    self._save_broken_json()
-                    return []
-
-                if not isinstance(task["created_at"], str):
-                    self._save_broken_json()
-                    return []
-
-                if not isinstance(task["updated_at"], str):
-                    self._save_broken_json()
-                    return []
+                if task["status"] not in allowed_statuses:
+                    return self._handle_broken_json()
 
             task_list = []
 
@@ -78,7 +68,7 @@ class JsonTaskStorage(Storage):
                 task_list.append(
                     Task(
                         text=task["text"],
-                        done=task["done"],
+                        status=task["status"],
                         task_id=task["task_id"],
                         created_at=task["created_at"],
                         updated_at=task["updated_at"],

@@ -1,5 +1,6 @@
 from task import Task
 
+
 class TaskManager:
     def __init__(self, storage):
         self.storage = storage
@@ -70,13 +71,13 @@ class TaskManager:
                 all_tasks.append(task_to_show)
 
             result = "\n".join(all_tasks)
-            print(f"Список задач:\n{result}")
+            print(f"\nСписок задач:\n\n{result}\n")
 
         elif argument == "done":
             done_tasks = []
 
             for index, task in enumerate(self.task_list, start=1):
-                if task.done:
+                if task.status == "done":
                     task_to_show = f"{index}. {task.show_task()}"
                     done_tasks.append(task_to_show)
 
@@ -84,24 +85,40 @@ class TaskManager:
                 print("Выполненных задач нет")
             else:
                 result = "\n".join(done_tasks)
-                print(f"Список выполненных задач:\n{result}")
+                print(f"\nСписок выполненных задач:\n\n{result}\n")
 
-        elif argument == "active":
-            active_tasks = []
+        elif argument == "in-progress":
+            in_progress_tasks = []
 
             for index, task in enumerate(self.task_list, start=1):
-                if not task.done:
+                if task.status == "in-progress":
                     task_to_show = f"{index}. {task.show_task()}"
-                    active_tasks.append(task_to_show)
+                    in_progress_tasks.append(task_to_show)
 
-            if len(active_tasks) == 0:
-                print("Активных задач нет")
+            if len(in_progress_tasks) == 0:
+                print("Задач в работе нет")
             else:
-                result = "\n".join(active_tasks)
-                print(f"Список активных задач:\n{result}")
+                result = "\n".join(in_progress_tasks)
+                print(f"\nСписок задач в работе:\n\n{result}\n")
+
+        elif argument == "todo":
+            todo_tasks = []
+
+            for index, task in enumerate(self.task_list, start=1):
+                if task.status == "todo":
+                    task_to_show = f"{index}. {task.show_task()}"
+                    todo_tasks.append(task_to_show)
+
+            if len(todo_tasks) == 0:
+                print("Задач к выполнению нет")
+            else:
+                result = "\n".join(todo_tasks)
+                print(f"\nСписок задач к выполнению:\n\n{result}\n")
 
         else:
-            print("Неизвестный фильтр")
+            print(
+                "Неизвестный фильтр. Используйте: todo, in-progress, done или оставьте аргумент пустым для вывода всего списка задач"
+            )
 
     def cmd_delete_task(self, argument):
         num = self._get_task_index(argument)
@@ -115,7 +132,7 @@ class TaskManager:
         print(f'Задача "{task_to_delete.text}" удалена')
         self.cmd_task_list()
 
-    def cmd_done_task(self, argument):
+    def cmd_mark_done(self, argument):
         num = self._get_task_index(argument)
 
         if num is None:
@@ -123,7 +140,7 @@ class TaskManager:
 
         task = self.task_list[num]
 
-        if task.done:
+        if task.status == "done":
             print("Задача уже является выполненной")
             return
 
@@ -133,7 +150,7 @@ class TaskManager:
         print(f'Задача "{task.text}" выполнена!')
         self.cmd_task_list()
 
-    def cmd_undone_task(self, argument):
+    def cmd_mark_in_progress(self, argument):
         num = self._get_task_index(argument)
 
         if num is None:
@@ -141,14 +158,32 @@ class TaskManager:
 
         task = self.task_list[num]
 
-        if not task.done:
-            print("Задача уже активная")
+        if task.status == "in-progress":
+            print("Задача уже выполняется")
             return
 
-        task.mark_undone()
+        task.mark_in_progress()
         self._save_tasks()
 
-        print(f'Задача "{task.text}" снова активная!')
+        print(f'Задача "{task.text}" выполняется!')
+        self.cmd_task_list()
+
+    def cmd_mark_todo(self, argument):
+        num = self._get_task_index(argument)
+
+        if num is None:
+            return
+
+        task = self.task_list[num]
+
+        if task.status == "todo":
+            print("Задача еще не выполняется")
+            return
+
+        task.mark_todo()
+        self._save_tasks()
+
+        print(f'Задача "{task.text}" не выполняется!')
         self.cmd_task_list()
 
     def cmd_edit_task(self, argument):
@@ -195,13 +230,12 @@ class TaskManager:
 
     def cmd_stats(self, argument=""):
         total = len(self.task_list)
-        done_count = sum(1 for task in self.task_list if task.done)
-        active_count = total - done_count
+        done_count = sum(1 for task in self.task_list if task.status == "done")
+        todo_count = sum(1 for task in self.task_list if task.status == "todo")
+        in_progress_count = total - done_count - todo_count
 
         print(
-            f"Всего задач: {total}\n"
-            f"Выполнено: {done_count}\n"
-            f"Активных: {active_count}"
+            f"Всего задач: {total}\nВыполнено: {done_count}\nАктивных: {in_progress_count}\nНе начатых: {todo_count}"
         )
 
     def cmd_clear_tasks(self, argument=""):
@@ -221,3 +255,32 @@ class TaskManager:
         print("Список команд:")
         print(", ".join(commands))
 
+    def cmd_task_info(self, argument=""):
+        if len(self.task_list) == 0:
+            print("Список задач пуст")
+            return
+
+        if argument == "":
+            all_tasks = []
+
+            for index, task in enumerate(self.task_list, start=1):
+                task_data = task.to_dict()
+                task_to_show = f"{index}\nTask: {task_data['text']}\nStatus: {task_data['status']}\nTask ID: {task_data['task_id']}\nCreated at: {task_data['created_at']}\nUpdated at: {task_data['updated_at']}\n"
+                all_tasks.append(task_to_show)
+
+            result = "\n".join(all_tasks)
+            print(f"\nСписок задач:\n\n{result}")
+
+        elif argument.isdigit():
+            index = self._get_task_index(argument)
+
+            if index is None:
+                return
+
+            task = self.task_list[index]
+            task_data = task.to_dict()
+            task_to_show = f"{argument}\nTask: {task_data['text']}\nStatus: {task_data['status']}\nTask ID: {task_data['task_id']}\nCreated at: {task_data['created_at']}\nUpdated at: {task_data['updated_at']}\n"
+            print(task_to_show)
+
+        else:
+            print("Неизвестный фильтр")
